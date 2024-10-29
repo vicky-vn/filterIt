@@ -1,0 +1,10 @@
+Flask
+Flask-Cors
+Flask-Bcrypt
+Flask-RESTful
+PyJWT
+pymongo
+flasgger
+spacy
+pdfplumber
+fpdf
