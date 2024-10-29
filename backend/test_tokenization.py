@@ -8,6 +8,7 @@ sample_text = (
     "John Doe is a 34-year-old male living at 456 Maple Ave, Toronto, ON M5H 2N2, Canada. He has a history of hypertension and asthma. Currently, he is taking Lisinopril 10 mg daily for hypertension  and uses an Albuterol inhaler as needed. His last medical visit was on September 15, 2024, where his blood pressure was recorded at 150/95 mmHg. John Cena is John Doe's trainer."
 )
 
+
 # Call the spaCy processing function
 tokens, entities, tokenized_text, entity_mapping = process_text_with_spacy(sample_text)
 

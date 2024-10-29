@@ -8,12 +8,15 @@ nlp = spacy.load('en_core_web_sm')
 # Add EntityRuler to enforce custom entity rules
 ruler = nlp.add_pipe("entity_ruler", before="ner")
 
-# Define custom rules (e.g., for names, ages, postal codes, and addresses)
+# Define custom rules (e.g., for names, ages, postal codes, addresses, and genders)
 patterns = [
     {"label": "PERSON", "pattern": [{"LOWER": "john"}, {"LOWER": "doe"}]},
     {"label": "AGE", "pattern": [{"IS_DIGIT": True}, {"LOWER": "year"}, {"LOWER": "old"}]},
     {"label": "AGE", "pattern": [{"IS_DIGIT": True}, {"LOWER": "years"}, {"LOWER": "old"}]},
-    {"label": "ADDRESS", "pattern": [{"IS_DIGIT": True}, {"LOWER": "maple"}, {"LOWER": "ave"}]}  # Address pattern
+    {"label": "ADDRESS", "pattern": [{"IS_DIGIT": True}, {"LOWER": "maple"}, {"LOWER": "ave"}]},  # Address pattern
+    {"label": "GENDER", "pattern": [{"LOWER": "male"}]},
+    {"label": "GENDER", "pattern": [{"LOWER": "female"}]},
+    # Add more variations as necessary
 ]
 
 # Add patterns to the ruler
@@ -28,22 +31,21 @@ address_pattern = re.compile(r"^\d+\s+\w+\s+(st|street|ave|avenue|rd|road|blvd|b
 def detect_custom_entities(doc):
     corrected_entities = []
     for ent in doc.ents:
-        # Check if it's a misclassified DATE that matches the age pattern
+        # Check for specific entity types
         if ent.label_ == "DATE" and age_pattern.match(ent.text):
             corrected_entities.append((ent.text, "AGE"))
-        # Check if it's a misclassified DATE that matches the postal code pattern
         elif ent.label_ == "DATE" and postal_code_pattern.match(ent.text):
             corrected_entities.append((ent.text, "POSTAL_CODE"))
-        # Check if it's a misclassified ORG that matches the address pattern
         elif ent.label_ == "ORG" and address_pattern.match(ent.text):
             corrected_entities.append((ent.text, "ADDRESS"))
-        # Convert GPE to LOC
         elif ent.label_ == "GPE":
             corrected_entities.append((ent.text, "LOC"))
+        elif ent.label_ == "GENDER":  # Check for gender
+            corrected_entities.append((ent.text, "GENDER"))
         else:
             corrected_entities.append((ent.text, ent.label_))
     
-    # Manual check for standalone ages in the text
+    # Additional logic for ages
     for token in doc:
         if token.like_num and token.nbor(1).text.lower() == "year" and token.nbor(2).text.lower() == "old":
             age_text = f"{token.text} year old"
@@ -55,10 +57,15 @@ def detect_custom_entities(doc):
 def process_text_with_spacy(text):
     # Apply spaCy's NLP pipeline to the text
     doc = nlp(text)
-    
+
+    # Print detected entities for debugging
+    print("Detected Entities:")
+    for ent in doc.ents:
+        print(f"{ent.text} - {ent.label_}")
+
     # Use custom detection to correct entities
     corrected_entities = detect_custom_entities(doc)
-    
+
     # Extract tokens
     tokens = [token.text for token in doc]
     
