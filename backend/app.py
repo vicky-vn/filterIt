@@ -10,6 +10,8 @@ from user_signin import user_signin_bp
 from pdf_upload import pdf_upload_bp  # Import the pdf upload blueprint
 from pdf_upload import send_from_directory  # Ensure send_from_directory is imported
 from parameterized_pdf_generator import parameterized_pdf_generator_bp  # Import the new PDF generator blueprint
+from settings import settings_bp
+
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})  # Enable CORS for all routes
@@ -26,6 +28,8 @@ app.register_blueprint(pdf_upload_bp)
 
 # Register the PDF generator blueprint
 app.register_blueprint(parameterized_pdf_generator_bp)
+
+app.register_blueprint(settings_bp)
 
 # Index route (welcome message)
 @app.route('/', methods=['GET'])

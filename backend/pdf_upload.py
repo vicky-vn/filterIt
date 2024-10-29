@@ -14,6 +14,7 @@ pdf_upload_bp = Blueprint('pdf_upload', __name__)
 pdf_uploads_collection = db["pdf_uploads"]
 
 # Base folder for all uploads
+#BASE_UPLOAD_FOLDER = ""
 BASE_UPLOAD_FOLDER = "/Users/vigneshnatarajan/myData/UWindsor/Term_II/ADT/MedRecShield/backend/public"
 MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # Limit to 16MB
 
