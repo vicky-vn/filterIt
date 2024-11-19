@@ -2,11 +2,8 @@ from flask import Blueprint, jsonify, request, current_app
 from db import db  # MongoDB connection setup
 from bson import ObjectId
 import jwt
-
-# Set up a blueprint for custom entities
 custom_entities_bp = Blueprint('custom_entities', __name__)
 
-# Define MongoDB collection for custom entities
 custom_entities_collection = db["custom_entities"]
 
 @custom_entities_bp.route('/update_custom_entity', methods=['PUT'])
@@ -42,7 +39,6 @@ def update_custom_entity():
                 return jsonify({"error": "No matching entity found"}), 404
             message = f"Custom entity '{label}' updated successfully."
         else:
-            # Add new custom entity
             new_entity = {
                 "_id": ObjectId(),
                 "label": label,
