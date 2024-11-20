@@ -7,7 +7,7 @@ import pyotp
 users_collection = db["users"]
 
 # Set up a blueprint for user signin
-user_signin_bp = Blueprint('user_signin', _name_)
+user_signin_bp = Blueprint('user_signin', __name__)
 
 @user_signin_bp.route('/signin', methods=['POST'])
 def signin():

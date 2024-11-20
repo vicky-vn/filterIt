@@ -6,7 +6,7 @@ import qrcode
 users_collection = db["users"]
 
 # Set up a blueprint for user signup
-user_signup_bp = Blueprint('user_signup', _name_)
+user_signup_bp = Blueprint('user_signup', __name__)
 
 @user_signup_bp.route('/signup', methods=['POST'])
 def signup():
