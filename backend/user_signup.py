@@ -49,7 +49,7 @@ def signup():
 
         return jsonify({
             "message": "User registered successfully. Scan the QR code in your authenticator app.",
-            "qr_code_base64": qr_code_base64  # Base64-encoded QR code image
+            "qr_code_base64": "data:image/png;base64,"+ qr_code_base64  # Base64-encoded QR code image
         }), 201
     except Exception as e:
         print(f"Error: {e}")
