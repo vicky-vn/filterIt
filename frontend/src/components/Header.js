@@ -10,6 +10,7 @@ function Header() {
     const [email, setEmail] = useState('')
     const [code, setCode] = useState('')
     const [isNew, setIsNew] = useState(false)
+    const [qrCode, setQrCode] = useState(null)
 
     const handleAuth = () => {
         if (!email) {
@@ -23,7 +24,11 @@ function Header() {
         })
         .then(res => res.json())
         .then(response => {
-            console.log(response);  
+            if (response.error === '') {
+                setIsNew(true)
+            } else {
+                setQrCode(response.qr_code_base64||null)
+            }
         })
         .catch(err => toast.error('Authentication Failed'))
         // setOpenAuthDialog(false)
@@ -83,15 +88,23 @@ function Header() {
                             placeholder='user@company.com'
                             className='my-1 rounded-md outline-none border w-full text-left text-black text-xs px-3 py-2'
                         />
-                        <label htmlFor='code' className='text-gray-500 text-left text-xs'>Verification Code</label>
-                        <input 
-                            value={code}
-                            onChange={e => setCode(e.target.value)}
-                            id='code'
-                            type='number'
-                            placeholder='6 digit code'
-                            className='my-1 rounded-md outline-none border w-full text-left text-black text-xs px-3 py-2'
-                        />
+                        {
+                            qrCode ? (
+                                <img src={qrCode} className='' />
+                            ) : (!qrCode && isNew) ? (
+                                <>
+                                    <label htmlFor='code' className='text-gray-500 text-left text-xs'>Verification Code</label>
+                                    <input 
+                                        value={code}
+                                        onChange={e => setCode(e.target.value)}
+                                        id='code'
+                                        type='number'
+                                        placeholder='6 digit code'
+                                        className='my-1 rounded-md outline-none border w-full text-left text-black text-xs px-3 py-2'
+                                    />
+                                </>
+                            ) : null
+                        }
                         <div className="mt-4">
                             <button 
                                 onClick={() => handleAuth()}
