@@ -2,6 +2,8 @@ from flask import Blueprint, jsonify, request
 from db import db
 import pyotp
 import qrcode
+import io
+import base64
 
 users_collection = db["users"]
 
@@ -40,12 +42,14 @@ def signup():
         qr_code_data = totp.provisioning_uri(email, issuer_name="filterIt")
         qr_code_img = qrcode.make(qr_code_data)
 
-        # Save QR code as a file (or send it to the front end as base64 for display)
-        qr_code_img.save(f"{email}_qrcode.png")
+        # Convert the QR code image to a Base64-encoded string
+        buffered = io.BytesIO()
+        qr_code_img.save(buffered, format="PNG")
+        qr_code_base64 = base64.b64encode(buffered.getvalue()).decode()
 
         return jsonify({
             "message": "User registered successfully. Scan the QR code in your authenticator app.",
-            "qr_code_data": qr_code_data  # Optional: Send the provisioning URI to the front end
+            "qr_code_base64": qr_code_base64  # Base64-encoded QR code image
         }), 201
     except Exception as e:
         print(f"Error: {e}")

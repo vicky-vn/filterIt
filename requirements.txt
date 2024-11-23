@@ -8,3 +8,7 @@ flasgger
 spacy
 pdfplumber
 fpdf
+python-dotenv
+geonamescache
+pycountry
+pyotp
