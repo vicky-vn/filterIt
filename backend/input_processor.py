@@ -97,6 +97,10 @@ def process_input():
             ent_text = ent.text.strip().lower()
             ent_label = ent.label_.upper()
 
+            # Exclude CARDINAL entities
+            if ent_label == "CARDINAL":
+                continue
+
             # Custom rule for AGE detection
             if ent_label == "DATE" and ("years old" in ent_text or "age" in ent_text):
                 ent_label = "AGE"
@@ -205,7 +209,7 @@ def update_parameterized_text(document_id):
         )
 
         return jsonify({
-            "message": "Parameterized text updated successfully",
+            "message": "Parameterized text updated successfully.",
             "tokenized_text": tokenized_text
         }), 200
 
