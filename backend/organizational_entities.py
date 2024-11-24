@@ -1,3 +1,4 @@
+from bson import ObjectId
 from flask import Blueprint, jsonify, request, current_app
 from db import db
 import jwt
@@ -19,18 +20,36 @@ def update_organizational_entity():
             return jsonify({"error": "Email is missing in token!"}), 400
 
         data = request.json
-        terms = data.get('terms', [])
+        entity_id = data.get('entity_id')
+        terms = data.get('terms', [])  # Default to an empty list if no terms are provided
 
-        if not terms:
-            return jsonify({"error": "Terms are required"}), 400
+        # Normalize terms to lowercase
+        terms = [term.strip().lower() for term in terms]
 
-        result = organizational_entities_collection.update_one(
-            {"email": email},
-            {"$set": {"organizational_entity": {"terms": terms}}},
-            upsert=True
-        )
+        if entity_id:
+            # Update existing organizational entity
+            entity_object_id = ObjectId(entity_id)
+            result = organizational_entities_collection.update_one(
+                {"email": email, "organizational_entities._id": entity_object_id},
+                {"$set": {"organizational_entities.$.terms": terms}}
+            )
+            if result.matched_count == 0:
+                return jsonify({"error": "No matching entity found"}), 404
+            message = f"Organizational entity updated successfully."
+        else:
+            # Add new organizational entity
+            new_entity = {
+                "_id": ObjectId(),
+                "label": "ORG",  # Default label for organizational entity
+                "terms": terms
+            }
+            organizational_entities_collection.update_one(
+                {"email": email},
+                {"$push": {"organizational_entities": new_entity}},
+                upsert=True
+            )
+            message = "Organizational entity created successfully."
 
-        message = "Organizational entity updated successfully." if result.modified_count else "Organizational entity created successfully."
         return jsonify({"message": message}), 200
 
     except jwt.ExpiredSignatureError:
