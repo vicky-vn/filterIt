@@ -80,11 +80,13 @@ def process_input():
             entity_counters[label] = entity_counters.get(label, 0)
 
             for term in terms:
+                if term in processed_terms:
+                    continue  # Skip terms that are already processed
                 entity_counters[label] += 1
                 placeholder = f"[{label}_{entity_counters[label]}]"
                 custom_entity_mapping[placeholder] = term
                 processed_terms.add(term)
-                tokenized_text = re.sub(re.escape(term), placeholder, tokenized_text, flags=re.IGNORECASE)
+                tokenized_text = re.sub(rf'\b{re.escape(term)}\b', placeholder, tokenized_text, flags=re.IGNORECASE)
 
         # Step 2: Run spaCy on the tokenized text
         doc = nlp(tokenized_text)
@@ -113,11 +115,7 @@ def process_input():
                 entity_counters[ent_label] = entity_counters.get(ent_label, 0) + 1
                 placeholder = f"[{ent_label}_{entity_counters[ent_label]}]"
                 spacy_entity_mapping[placeholder] = ent.text
-                tokenized_text = tokenized_text.replace(ent.text, placeholder)
-
-        # Final pass for case-insensitive replacement of custom entities
-        for placeholder, term in custom_entity_mapping.items():
-            tokenized_text = re.sub(re.escape(term), placeholder, tokenized_text, flags=re.IGNORECASE)
+                tokenized_text = re.sub(rf'\b{re.escape(ent.text)}\b', placeholder, tokenized_text)
 
         # Combine custom and spaCy mappings
         entity_mapping = {**custom_entity_mapping, **spacy_entity_mapping}
