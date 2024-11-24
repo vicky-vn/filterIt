@@ -17,6 +17,42 @@ function Header() {
             return toast.error('Invalid Email Address')
         }
 
+        if (qrCode) {
+            setQrCode(null)
+            setIsNew(true)
+            return
+        }
+
+        if (isNew && !code) {
+            return toast.error('Enter a 6 digit valid code')
+        }
+
+        if (!qrCode && isNew && code) {
+            fetch(baseUrl+'/signin', {
+                method: 'POST',
+                headers: { 'Content-type': 'application/json' },
+                body: JSON.stringify({ email: email, token: code })
+            })
+            .then(res => res.json())
+            .then(response => {
+                if (response.error) {
+                    toast.error(response.error)
+                    return
+                } else {
+                    toast.success(response.message)
+                    sessionStorage.setItem('token', response.token)
+                    setOpenAuthDialog(false)
+                    setQrCode(null)
+                    setCode('')
+                    setIsNew(false)
+                    setEmail('')
+                    return
+                }
+            })
+            .catch(err => toast.error('Authentication Failed'))
+            return
+        }
+
         fetch(baseUrl+'/signup', {
             method: 'POST',
             headers: { 'Content-type': 'application/json' },
@@ -24,7 +60,7 @@ function Header() {
         })
         .then(res => res.json())
         .then(response => {
-            if (response.error === '') {
+            if (response.error === 'Email already exists.') {
                 setIsNew(true)
             } else {
                 setQrCode(response.qr_code_base64||null)
@@ -59,14 +95,23 @@ function Header() {
                 <Link to='/about'>
                     <p className='text-black text-sm text-center hover:text-gray-600'>About</p>
                 </Link>
-                <button 
-                    onClick={() => setOpenAuthDialog(true)}
-                    className='transform active:scale-105 duration-200 rounded-md text-xs font-medium text-white bg-black hover:bg-gray-700 text-center px-3 py-1 flex items-center space-x-1'>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="size-4">
-                        <path fillRule="evenodd" d="M10 2a.75.75 0 0 1 .75.75v7.5a.75.75 0 0 1-1.5 0v-7.5A.75.75 0 0 1 10 2ZM5.404 4.343a.75.75 0 0 1 0 1.06 6.5 6.5 0 1 0 9.192 0 .75.75 0 1 1 1.06-1.06 8 8 0 1 1-11.313 0 .75.75 0 0 1 1.06 0Z" clipRule="evenodd" />
-                        </svg>
-                        <span>Authenticate</span>
-                </button>
+                {
+                    sessionStorage.getItem('token') ? (
+                        <p onClick={() => {
+                            sessionStorage.clear()
+                            window.location.replace('/')
+                        }} className='text-rose-600 text-sm font-semibold cursor-pointer px-1'>Sign Out</p>
+                    ) : (
+                        <button 
+                            onClick={() => setOpenAuthDialog(true)}
+                            className='transform active:scale-105 duration-200 rounded-md text-xs font-medium text-white bg-black hover:bg-gray-700 text-center px-3 py-1 flex items-center space-x-1'>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="size-4">
+                                <path fillRule="evenodd" d="M10 2a.75.75 0 0 1 .75.75v7.5a.75.75 0 0 1-1.5 0v-7.5A.75.75 0 0 1 10 2ZM5.404 4.343a.75.75 0 0 1 0 1.06 6.5 6.5 0 1 0 9.192 0 .75.75 0 1 1 1.06-1.06 8 8 0 1 1-11.313 0 .75.75 0 0 1 1.06 0Z" clipRule="evenodd" />
+                                </svg>
+                                <span>Authenticate</span>
+                        </button>
+                    )
+                }
             </div>
             <Dialog open={openAuthDialog} as="div" className="relative z-10 focus:outline-none" onClose={() => {}}>
                 <DialogBackdrop className="fixed inset-0 bg-black/50" />
@@ -86,11 +131,14 @@ function Header() {
                             id='email'
                             type='email'
                             placeholder='user@company.com'
-                            className='my-1 rounded-md outline-none border w-full text-left text-black text-xs px-3 py-2'
+                            className='my-1 rounded-md outline-none border w-full text-left text-black text-xs px-3 py-2 mb-2'
                         />
                         {
                             qrCode ? (
-                                <img src={qrCode} className='' />
+                                <div className='flex flex-col space-y-1'>
+                                    <p className='w-full text-sm text-gray-600 text-left'>Scan the QR Code with Authenticator app to continue</p>
+                                    <img src={qrCode} className='w-40 h-40 contain' alt='qrcode' />
+                                </div>
                             ) : (!qrCode && isNew) ? (
                                 <>
                                     <label htmlFor='code' className='text-gray-500 text-left text-xs'>Verification Code</label>
@@ -110,7 +158,13 @@ function Header() {
                                 onClick={() => handleAuth()}
                                 className='transform active:scale-105 duration-200 bg-black px-2 py-1 text-white text-center text-xs rounded-md mr-2'>Continue</button>
                             <button 
-                                onClick={() => setOpenAuthDialog(false)}
+                                onClick={() => {
+                                    setQrCode(null)
+                                    setEmail('')
+                                    setCode('')
+                                    setIsNew(false)
+                                    setOpenAuthDialog(false)
+                                }}
                                 className='transform active:scale-105 duration-200 bg-white px-2 py-1 text-black hover:bg-gray-100 text-center text-xs rounded-md mr-2'>Cancel</button>
                         </div>
                         </DialogPanel>
