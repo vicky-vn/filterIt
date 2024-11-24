@@ -216,3 +216,38 @@ def update_parameterized_text(document_id):
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
+
+@input_processor_bp.route('/get_user_uploads', methods=['GET'])
+def get_user_uploads():
+    try:
+        # Decode JWT token to get the email
+        token = request.headers.get('Authorization', '').replace('Bearer ', '')
+        if not token:
+            return jsonify({"error": "Token is missing!"}), 403
+
+        decoded_token = jwt.decode(token, current_app.config['JWT_SECRET_KEY'], algorithms=["HS256"])
+        email = decoded_token.get("user_email")  # Extract email
+        if not email:
+            return jsonify({"error": "Email is missing in token!"}), 400
+
+        # Retrieve all uploads for the user
+        user_uploads = uploads_collection.find({"email": email})
+
+        # Convert ObjectId to string for JSON serialization
+        uploads = []
+        for upload in user_uploads:
+            upload["_id"] = str(upload["_id"])  # Convert ObjectId to string
+            uploads.append(upload)
+
+        return jsonify({
+            "message": "User uploads retrieved successfully.",
+            "uploads": uploads
+        }), 200
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "Token has expired!"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"error": "Invalid token!"}), 401
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": str(e)}), 500
