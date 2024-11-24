@@ -82,7 +82,7 @@ function Process() {
 
   return (
     <div className='bg-white h-[calc(100vh_-_100px)] w-full px-10 pb-4 flex flex-row items-center justify-between overflow-hidden'>
-      <div className='shadow-sm w-[22%] h-full border bg-white rounded-md py-2 px-4'>
+      <div className='shadow-sm w-[22%] overflow-y-auto h-full border bg-white rounded-md py-2 px-4'>
         <h3 className='w-full text-left font-semibold text-sm py-1 mb-2 flex items-center space-x-2'>
             <span className='text-md'>History</span>
             <button 
@@ -108,7 +108,7 @@ function Process() {
                 sessions.map((session, index) => (
                     <div 
                         key={session?._id||index}
-                        className='w-full rounded-md bg-gray-100 cursor-pointer text-left flex flex-row items-start justify-start py-1 px-1'>
+                        className='w-full hover:bg-gray-200 rounded-md bg-gray-100 cursor-pointer text-left flex flex-row items-start justify-start py-1 px-1'>
                         <div className='rounded-md flex flex-row items-center justify-center p-1 space-x-1'>
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-gray-500">
                                 <path d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0 0 16.5 9h-1.875a1.875 1.875 0 0 1-1.875-1.875V5.25A3.75 3.75 0 0 0 9 1.5H5.625Z" />

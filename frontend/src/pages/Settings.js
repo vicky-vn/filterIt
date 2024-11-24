@@ -81,9 +81,9 @@ function Settings() {
             <div className='w-full bg-gray-100 text-left rounded-md'>
                 <p className='w-full text-left text-sm text-black px-2 py-1'>Custom Information</p>
             </div>
-            <div className='w-full border h-[300px] my-2'>
+            <div className='w-full my-2'>
                 <textarea
-                    className='w-full h-full text-left bg-black rounded-md px-2 py-2 text-sm text-white'
+                    className='w-full text-left border bg-black min-h-[200px] resize-none rounded-md px-2 py-2 text-sm text-white'
                     placeholder='Separated by new line'
                 ></textarea>
             </div>
