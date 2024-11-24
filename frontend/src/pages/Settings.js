@@ -1,6 +1,49 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import baseUrl from '../baseUrl'
+import toast from 'react-hot-toast'
 
 function Settings() {
+
+    const [orgE, setorgE] = useState(null)
+
+    useEffect(() => {
+        async function getOrgEntities() {
+            fetch(baseUrl+'/get_organizational_entities', {
+                headers: { 'Authorization': 'Bearer '+sessionStorage.getItem('token') }
+            })
+            .then(res => res.json())
+            .then(response => {
+                setorgE(response?.organizational_entities?.[0]?.terms.join('\n'))
+            })
+            .catch(err => {
+                toast.error('Try Again')
+                console.log(err);                
+            })
+        }
+        getOrgEntities()
+    }, [])
+
+    const addOrgEntity = () => {
+        fetch(baseUrl+'/update_organizational_entity', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer '+sessionStorage.getItem('token') },
+            body: JSON.stringify({ terms: orgE.split('\n'), label: 'ORG' })
+        }).then(res => res.json())
+        .then(response => {
+            toast.success('Entity Updated!')
+        }).catch(err => {
+            console.log(err);
+            toast.error('try Again')
+        })
+    }
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            addOrgEntity()
+        }, 2000)
+        return () => clearTimeout(timer)
+    }, [orgE])
+
   return (
     <div className='bg-white h-full min-h-[calc(100vh_-_100px)] w-full px-10 pb-4 flex flex-row items-start justify-between space-x-4'>
       <div className='w-1/2 h-full flex flex-col items-center'>
@@ -27,6 +70,8 @@ function Settings() {
                 <textarea
                     className='w-full h-full text-left bg-black rounded-md px-2 py-2 text-sm text-white'
                     placeholder='Separated by new line'
+                    value={orgE}
+                    onChange={(e) => setorgE(e.target.value)}
                 ></textarea>
             </div>
         </div>
