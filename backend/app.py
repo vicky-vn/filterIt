@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from dotenv import load_dotenv
 from db import collection
@@ -9,6 +9,7 @@ from user_signup import user_signup_bp
 from user_signin import user_signin_bp
 from input_processor import input_processor_bp
 from custom_entities import custom_entities_bp
+from parameterized_pdf_generator import parameterized_pdf_generator_bp
 from question_transformer import get_transformed_question
 from response_transformer import get_transformed_answer
 from settings import settings_bp
@@ -29,6 +30,8 @@ app.register_blueprint(user_signin_bp)
 app.register_blueprint(input_processor_bp)
 app.register_blueprint(custom_entities_bp)
 app.register_blueprint(settings_bp)
+app.register_blueprint(parameterized_pdf_generator_bp)
+
 
 # Index route (welcome message)
 @app.route('/', methods=['GET'])
