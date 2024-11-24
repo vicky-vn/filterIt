@@ -1,4 +1,4 @@
-import React, { useReducer, useRef, useState } from 'react'
+import React, { useEffect, useReducer, useRef, useState } from 'react'
 import { Viewer, Worker } from '@react-pdf-viewer/core';
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import baseUrl from '../baseUrl'
@@ -13,6 +13,7 @@ function Process() {
     const [uploadComplete, setUploadComplete] = useState(false)
     const [entities, setEntities] = useState(null)
     const [selectedEntities, setSelectedEntities] = useState(null)
+    const [loading, setLoading] = useState(false)
 
     const fileRef = useRef(null)
 
@@ -45,6 +46,37 @@ function Process() {
             toast.error('Try Again!')
         }).finally(() => setFLoading(false))
     }
+
+    const updateEntities = () => {
+        setLoading(true)
+        fetch(baseUrl+'/update_parameterized_text/'+entities._id, {
+            method: 'PUT',
+            headers: { 'Authorization': sessionStorage.getItem('token') },
+            body: JSON.stringify({selected_entities: Object.keys(selectedEntities).join(',')})
+        }).then(res => res.json())
+        .then(response => {  
+              
+        })
+        .catch(err => {
+            console.log(err);
+            toast.error('Try Again!')
+        }).finally(() => setLoading(false))
+    }
+
+    async function getHistory() {
+        fetch(baseUrl+'/history')
+        .then(res => res.json())
+        .then(response => {
+            setSessions(response||[])
+        }).catch(err => {
+            console.log(err);
+            toast.error('Try Again')
+        })
+    }
+
+    useEffect(() => {
+        getHistory()
+    }, [])
 
   return (
     <div className='bg-white h-[calc(100vh_-_100px)] w-full px-10 pb-4 flex flex-row items-center justify-between overflow-hidden'>
@@ -138,18 +170,49 @@ function Process() {
         <div className='w-full flex flex-col rounded-md border p-2'>
             {
                 Object.keys(entities?.entities||{})?.map(item => (
-                    <div className='w-full flex items-center space-x-1'>
-                        <input onChange={e => setSelectedEntities(prev => ({...prev, [item]: entities.entities[item] }))} checked={selectedEntities.hasOwnProperty(item)} type='checkbox' className='rounded-md text-sm' />
+                    <div key={item} className='w-full flex items-center space-x-1'>
+                        <input onChange={e => {
+                            if (e.target.checked) {
+                                setSelectedEntities(prev => ({...prev, [item]: entities.entities[item] }))
+                            } else {
+                                setSelectedEntities((prevState) => {
+                                    const updatedItems = { ...prevState };
+                                    delete updatedItems[item]; 
+                                    return {
+                                        ...updatedItems
+                                    };
+                                });
+                            }
+                        }} checked={selectedEntities.hasOwnProperty(item)} type='checkbox' className='rounded-md text-sm' />
                         <span className='text-sm'>{item}{': '}{entities.entities[item]}</span>
                     </div>
                 ))
             }
         </div>
+        <div className='px-6 w-full flex items-start justify-start flex-col space-y-1'>
+            <p className=' text-left w-full text-xs text-black'>Are you sure about the entities filtered ?</p>
+            <button onClick={() => {
+                    updateEntities()
+                }} className='bg-black text-white px-2 py-1 rounded-md text-xs'>Continue</button>
+        </div>
+        <div className='w-full flex flex-row items-center'>
+            {
+                loading? (<div className='w-2 h-2 bg-black rounded-full animate-ping duration-10 mr-2'></div>):(
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-black">
+                        <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clipRule="evenodd" />
+                    </svg>
+                )
+            }
+            <p className='px-2 text-xs text-black'>Filtering of Data done</p>
+            
+        </div>
+        <p className='w-full max-w-[90%] mx-auto py-1 text-left text-xs px-2 bg-gray-200 rounded-md text-black'>Summarization</p>
         {/* <p className='w-full max-w-[90%] mx-auto py-1 text-left text-xs px-2 bg-black rounded-md text-gray-100'>Custom Information</p> */}
         <p className='px-6 text-left w-full text-xs text-black'>Do you want to continue for summarizing ?</p>
         <div className='w-full px-6 flex flex-row items-start space-x-2'>
-            <button onClick={() => console.log(selectedEntities)
-            } className='bg-black text-white px-2 py-1 rounded-md text-xs'>Continue</button>
+            <button onClick={() => {
+                updateEntities()
+            }} className='bg-black text-white px-2 py-1 rounded-md text-xs'>Continue</button>
             <span className='text-gray-600 text-xs py-1 text-center'>-or-</span>
             <button className='text-black py-1 rounded-md text-xs'><span className=''>Download</span> <span className='underline'>Protected-Record.pdf</span></button>
         </div>
