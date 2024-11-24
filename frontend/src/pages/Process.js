@@ -49,13 +49,13 @@ function Process() {
 
     const updateEntities = () => {
         setLoading(true)
-        fetch(baseUrl+'/update_parameterized_text/'+entities._id, {
-            method: 'PUT',
-            headers: { 'Authorization': sessionStorage.getItem('token') },
+        fetch(baseUrl+'/update_parameterized_text/'+entities.document_id, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': sessionStorage.getItem('token') },
             body: JSON.stringify({selected_entities: Object.keys(selectedEntities).join(',')})
         }).then(res => res.json())
         .then(response => {  
-              
+              console.log(response);
         })
         .catch(err => {
             console.log(err);
@@ -64,10 +64,12 @@ function Process() {
     }
 
     async function getHistory() {
-        fetch(baseUrl+'/history')
+        fetch(baseUrl+'/get_user_uploads', {
+            headers: { 'Authorization': 'Bearer '+sessionStorage.getItem('token') }
+        })
         .then(res => res.json())
         .then(response => {
-            setSessions(response||[])
+            setSessions(response?.uploads||[])
         }).catch(err => {
             console.log(err);
             toast.error('Try Again')
@@ -112,7 +114,7 @@ function Process() {
                                 <path d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0 0 16.5 9h-1.875a1.875 1.875 0 0 1-1.875-1.875V5.25A3.75 3.75 0 0 0 9 1.5H5.625Z" />
                                 <path d="M12.971 1.816A5.23 5.23 0 0 1 14.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.23 5.23 0 0 1 3.434 1.279 9.768 9.768 0 0 0-6.963-6.963Z" />
                             </svg>
-                            <p className='text-center text-xs text-gray-600 whitespace-nowrap'>{session.fileName||'Session '+index+1}</p>
+                            <p className='text-center text-xs text-gray-600 whitespace-nowrap'>{'Session '+parseInt(index+1)}</p>
                         </div>
                     </div>
                 ))
@@ -214,7 +216,7 @@ function Process() {
                 updateEntities()
             }} className='bg-black text-white px-2 py-1 rounded-md text-xs'>Continue</button>
             <span className='text-gray-600 text-xs py-1 text-center'>-or-</span>
-            <button className='text-black py-1 rounded-md text-xs'><span className=''>Download</span> <span className='underline'>Protected-Record.pdf</span></button>
+            <button onClick={() => window.open(`http://127.0.0.1:8000/generate_pdf/`+entities.document_id)} className='text-black py-1 rounded-md text-xs'><span className=''>Download</span> <span className='underline'>Protected-Record.pdf</span></button>
         </div>
         <div className='w-full flex flex-row items-center'>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-black">
