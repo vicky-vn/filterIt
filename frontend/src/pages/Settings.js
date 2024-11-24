@@ -8,12 +8,12 @@ function Settings() {
 
     useEffect(() => {
         async function getOrgEntities() {
-            fetch(baseUrl+'/get_organizational_entities', {
+            fetch(baseUrl+'/get_organizational_entity', {
                 headers: { 'Authorization': 'Bearer '+sessionStorage.getItem('token') }
             })
             .then(res => res.json())
             .then(response => {
-                setorgE(response?.organizational_entities?.[0]?.terms.join('\n'))
+                setorgE(response?.organizational_entity?.terms.join('\n'))
             })
             .catch(err => {
                 toast.error('Try Again')
@@ -27,7 +27,7 @@ function Settings() {
         fetch(baseUrl+'/update_organizational_entity', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer '+sessionStorage.getItem('token') },
-            body: JSON.stringify({ terms: orgE.split('\n'), label: 'ORG' })
+            body: JSON.stringify({ terms: orgE?.split('\n')||'', label: 'ORG' })
         }).then(res => res.json())
         .then(response => {
             toast.success('Entity Updated!')
@@ -38,10 +38,12 @@ function Settings() {
     }
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            addOrgEntity()
-        }, 2000)
-        return () => clearTimeout(timer)
+        if (orgE) {
+            const timer = setTimeout(() => {
+                addOrgEntity()
+            }, 2000)
+            return () => clearTimeout(timer)
+        }
     }, [orgE])
 
   return (
@@ -61,12 +63,12 @@ function Settings() {
             </div>
         </div>
       </div>
-      <div className='w-1/2 h-full grid grid-rows-2 gap-4'>
-        <div>
+      <div className='w-1/2 h-full flex flex-col items-center'>
+        <div className='w-full'>
             <div className='w-full bg-gray-100 text-left rounded-md'>
                 <p className='w-full text-left text-sm text-black px-2 py-1'>Organisational Information</p>
             </div>
-            <div className='w-full border h-[300px] my-2'>
+            <div className='w-full border h-[200px] my-2'>
                 <textarea
                     className='w-full h-full text-left bg-black rounded-md px-2 py-2 text-sm text-white'
                     placeholder='Separated by new line'
@@ -75,7 +77,7 @@ function Settings() {
                 ></textarea>
             </div>
         </div>
-        <div>
+        <div className='w-full'>
             <div className='w-full bg-gray-100 text-left rounded-md'>
                 <p className='w-full text-left text-sm text-black px-2 py-1'>Custom Information</p>
             </div>
