@@ -9,6 +9,7 @@ from user_signup import user_signup_bp
 from user_signin import user_signin_bp
 from input_processor import input_processor_bp
 from custom_entities import custom_entities_bp
+from organizational_entities import organizational_entities_bp
 from parameterized_pdf_generator import parameterized_pdf_generator_bp
 from question_transformer import get_transformed_question
 from response_transformer import get_transformed_answer
@@ -29,6 +30,7 @@ app.register_blueprint(user_signup_bp)
 app.register_blueprint(user_signin_bp)
 app.register_blueprint(input_processor_bp)
 app.register_blueprint(custom_entities_bp)
+app.register_blueprint(organizational_entities_bp)
 app.register_blueprint(settings_bp)
 app.register_blueprint(parameterized_pdf_generator_bp)
 

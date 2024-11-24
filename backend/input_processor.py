@@ -5,6 +5,7 @@ from flask import Blueprint, jsonify, request, current_app
 import jwt
 from db import db
 from custom_entities import custom_entities_collection
+from organizational_entities import organizational_entities_collection
 from pdf_text_extractor import extract_text_from_pdf
 from docx_text_extractor import extract_text_from_docx
 import spacy
@@ -42,6 +43,10 @@ def process_input():
         # Retrieve custom entities for this user
         user_settings = custom_entities_collection.find_one({"email": email})
         custom_entities = user_settings.get("custom_entities", []) if user_settings else []
+
+        # Retrieve organizational entities for this user
+        org_settings = organizational_entities_collection.find_one({"email": email})
+        organizational_entities = org_settings.get("organizational_entities", []) if org_settings else []
 
         # Initialize text variable
         text = ""
@@ -88,11 +93,27 @@ def process_input():
                 processed_terms.add(term)
                 tokenized_text = re.sub(rf'\b{re.escape(term)}\b', placeholder, tokenized_text, flags=re.IGNORECASE)
 
-        # Step 2: Run spaCy on the tokenized text
+        # Step 2: Tokenize Organizational Entities
+        org_entity_mapping = {}
+        for entity in organizational_entities:
+            label = entity["label"].upper().replace(" ", "_")
+            terms = sorted([term.strip().lower() for term in entity["terms"]], key=len, reverse=True)
+            entity_counters[label] = entity_counters.get(label, 0)
+
+            for term in terms:
+                if term in processed_terms:
+                    continue  # Skip terms already processed
+                entity_counters[label] += 1
+                placeholder = f"[{label}_{entity_counters[label]}]"
+                org_entity_mapping[placeholder] = term
+                processed_terms.add(term)
+                tokenized_text = re.sub(rf'\b{re.escape(term)}\b', placeholder, tokenized_text, flags=re.IGNORECASE)
+
+        # Step 3: Run spaCy on the tokenized text
         doc = nlp(tokenized_text)
         spacy_entity_mapping = {}
 
-        # Step 3: Refine GPE Labels based on countries, states, and cities lists
+        # Step 4: Refine GPE Labels based on countries, states, and cities lists
         for ent in doc.ents:
             ent_text = ent.text.strip().lower()
             ent_label = ent.label_.upper()
@@ -121,16 +142,17 @@ def process_input():
                 spacy_entity_mapping[placeholder] = ent.text
                 tokenized_text = re.sub(rf'\b{re.escape(ent.text)}\b', placeholder, tokenized_text)
 
-        # Combine custom and spaCy mappings
-        entity_mapping = {**custom_entity_mapping, **spacy_entity_mapping}
+        # Combine custom, organizational, and spaCy mappings
+        entity_mapping = {**custom_entity_mapping, **org_entity_mapping, **spacy_entity_mapping}
 
         # Save processed data to MongoDB
         upload_entry = {
-            "email": email,  # Save email instead of user_id
+            "email": email,
             "original_text": text,
             "tokenized_text": tokenized_text,
             "entity_mapping": entity_mapping,
             "custom_entities": custom_entity_mapping,
+            "organizational_entities": org_entity_mapping,
             "entities": [{"text": ent.text, "label": ent_label} for ent in doc.ents if ent.text.lower() not in processed_terms]
         }
         result = uploads_collection.insert_one(upload_entry)
