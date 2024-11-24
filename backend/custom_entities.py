@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request, current_app
-from db import db  # MongoDB connection setup
+from db import db
 from bson import ObjectId
 import jwt
 custom_entities_bp = Blueprint('custom_entities', __name__)

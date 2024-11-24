@@ -6,7 +6,7 @@ uri = "mongodb://localhost:27017"
 client = MongoClient(uri)
 
 db = client["filterIt"]  # Local database name
-collection = db["patient_records"]  # Collection name
+collection = db["uploads"]  # Collection name
 
 try:
     client.admin.command('ping')
