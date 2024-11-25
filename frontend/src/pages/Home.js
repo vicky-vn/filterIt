@@ -8,8 +8,6 @@ function Home() {
     const fileRef = useRef(null)
     const router = useNavigate()
 
-    const [uploading, setUploading] = useState(false)
-
     useEffect(() => {
         new Typewriter('#subtext', {
             strings: ['information', '[PARAMETER]'],
@@ -20,15 +18,6 @@ function Home() {
           });
     }, [])
 
-    const handleChange = (e) => {
-        const file = e.target.files[0]
-        setUploading(true)
-        setTimeout(() => {
-            setUploading(false)
-            router('/process')
-        }, 3000)
-    }
-
   return (
     <div className='bg-white h-[calc(100vh_-_100px)] w-full px-10 py-8 flex flex-col items-center'>
         <div className='w-full min-h-[400px] flex flex-col items-center space-y-1'>
@@ -37,14 +26,6 @@ function Home() {
             </h2>
             <p className='text-center text-gray-500 text-sm'>Filter, Process and Use your data with any commercial AI tools with ease.</p>
             <br />
-            <input 
-                ref={fileRef}
-                type='file' 
-                multiple={false}
-                accept='application/pdf'
-                style={{ display: 'none' }} 
-                onChange={e => handleChange(e)}
-            />
             <div 
                 onClick={() => sessionStorage.getItem('token')?router('/process'):toast.error("Authenticate to continue")}
                 className='max-w-[300px] cursor-pointer hover:shadow-md hover:border-rose-600 rounded-md border border-black p-3 flex flex-col items-start space-y-2'>
@@ -56,21 +37,6 @@ function Home() {
                 </h2>
                 <p className='text-sm text-gray-500 text-left w-full'>Summarize your reports, audits and other documents or texts</p>
             </div>
-            {/* {
-                uploading ? (
-                    <img src='./uploading.gif' className='contain h-[100px]' />
-                ) : (
-                    <button 
-                        onClick={() => fileRef?.current?.click()}
-                        className='transform transition duration-500 ease-out scale-100 opacity-100 active:scale-0 active:opacity-0 hover:bg-red-600 rounded-md bg-red-500 text-sm text-white px-4 py-2 flex flex-row items-center space-x-3'>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-white">
-                            <path d="M9.25 13.25a.75.75 0 0 0 1.5 0V4.636l2.955 3.129a.75.75 0 0 0 1.09-1.03l-4.25-4.5a.75.75 0 0 0-1.09 0l-4.25 4.5a.75.75 0 1 0 1.09 1.03L9.25 4.636v8.614Z" />
-                            <path d="M3.5 12.75a.75.75 0 0 0-1.5 0v2.5A2.75 2.75 0 0 0 4.75 18h10.5A2.75 2.75 0 0 0 18 15.25v-2.5a.75.75 0 0 0-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5Z" />
-                        </svg>
-                        <span className='text-white font-medium'>Upload</span>
-                    </button>
-                )
-            } */}
         </div>
         <div className='relative flex flex-row items-center'>
             <div className='rounded-md flex flex-col items-center justify-center p-1 space-y-1 w-[100px] h-[100px]'>
@@ -80,12 +46,26 @@ function Home() {
                 </svg>
                 <p className='w-full text-center text-xs text-gray-600'>Record.pdf</p>
             </div>
+            <div className='rounded-md flex flex-col items-center justify-center p-1 space-y-1 w-[100px] h-[100px]'>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-gray-500 mb-2">
+                    <path d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0 0 16.5 9h-1.875a1.875 1.875 0 0 1-1.875-1.875V5.25A3.75 3.75 0 0 0 9 1.5H5.625Z" />
+                    <path d="M12.971 1.816A5.23 5.23 0 0 1 14.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.23 5.23 0 0 1 3.434 1.279 9.768 9.768 0 0 0-6.963-6.963Z" />
+                </svg>
+                <p className='w-full text-center text-xs text-gray-600'>Record.docx</p>
+            </div>
+            <div className='rounded-md flex flex-col items-center justify-center p-1 space-y-1 w-[100px] h-[100px]'>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-gray-500 mb-2">
+                    <path d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0 0 16.5 9h-1.875a1.875 1.875 0 0 1-1.875-1.875V5.25A3.75 3.75 0 0 0 9 1.5H5.625Z" />
+                    <path d="M12.971 1.816A5.23 5.23 0 0 1 14.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.23 5.23 0 0 1 3.434 1.279 9.768 9.768 0 0 0-6.963-6.963Z" />
+                </svg>
+                <p className='w-full text-center text-xs text-gray-600'>Record.txt</p>
+            </div>
             <img
                 src='./right-arrow.png'
                 className='contain h-[30px] mx-4'
             />
             <div className='rounded-md ml-2 text-xs px-2 py-2 w-[150px] text-center border border-gray-400 border-dashed flex flex-col items-center justify-center bg-white shadow-sm'>
-                <p>extracted pdf content here for further process</p>
+                <p>extracted file content here for further process</p>
             </div>
             <img
                 src='./right-arrow.png'
@@ -138,10 +118,6 @@ function Home() {
                     src='./right-arrow.png'
                     className='contain h-[30px] mx-4 transform'
                 />
-                <img
-                    src='./right-arrow.png'
-                    className='contain h-[30px] mx-4 transform rotate-[30deg] absolute -bottom-10'
-                />
             </div>
             <div className='rounded-md flex flex-row items-center justify-center p-1 space-x-1'>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-gray-500">
@@ -159,14 +135,7 @@ function Home() {
                     <p className='text-center text-xs text-gray-600 whitespace-nowrap'>Summarized-Content.pdf</p>
                 </div>
             </div>
-            <div className='relative'>
-                <div className='rounded-md flex flex-row items-center justify-center p-1 space-x-1 absolute top-8 right-2'>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-gray-500">
-                        <path fillRule="evenodd" d="M4.848 2.771A49.144 49.144 0 0 1 12 2.25c2.43 0 4.817.178 7.152.52 1.978.292 3.348 2.024 3.348 3.97v6.02c0 1.946-1.37 3.678-3.348 3.97a48.901 48.901 0 0 1-3.476.383.39.39 0 0 0-.297.17l-2.755 4.133a.75.75 0 0 1-1.248 0l-2.755-4.133a.39.39 0 0 0-.297-.17 48.9 48.9 0 0 1-3.476-.384c-1.978-.29-3.348-2.024-3.348-3.97V6.741c0-1.946 1.37-3.68 3.348-3.97ZM6.75 8.25a.75.75 0 0 1 .75-.75h9a.75.75 0 0 1 0 1.5h-9a.75.75 0 0 1-.75-.75Zm.75 2.25a.75.75 0 0 0 0 1.5H12a.75.75 0 0 0 0-1.5H7.5Z" clipRule="evenodd" />
-                    </svg>
-                    <p className='text-center text-xs text-gray-600 whitespace-nowrap'>Chat with document</p>
-                </div>
-            </div>
+            
         </div>
     </div>
   )
