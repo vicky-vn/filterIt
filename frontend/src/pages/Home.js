@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
+import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import Typewriter from 'typewriter-effect/dist/core'
 
@@ -44,7 +45,18 @@ function Home() {
                 style={{ display: 'none' }} 
                 onChange={e => handleChange(e)}
             />
-            {
+            <div 
+                onClick={() => sessionStorage.getItem('token')?router('/process'):toast.error("Authenticate to continue")}
+                className='max-w-[300px] cursor-pointer hover:shadow-md hover:border-rose-600 rounded-md border border-black p-3 flex flex-col items-start space-y-2'>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                </svg>
+                <h2 className='w-full text-left text-md text-black font-semibold'>
+                    Summarizer
+                </h2>
+                <p className='text-sm text-gray-500 text-left w-full'>Summarize your reports, audits and other documents or texts</p>
+            </div>
+            {/* {
                 uploading ? (
                     <img src='./uploading.gif' className='contain h-[100px]' />
                 ) : (
@@ -58,7 +70,7 @@ function Home() {
                         <span className='text-white font-medium'>Upload</span>
                     </button>
                 )
-            }
+            } */}
         </div>
         <div className='relative flex flex-row items-center'>
             <div className='rounded-md flex flex-col items-center justify-center p-1 space-y-1 w-[100px] h-[100px]'>
