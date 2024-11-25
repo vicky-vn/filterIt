@@ -13,20 +13,20 @@ function Settings() {
     /**
      * Used to get all the entities that are tagged towards organisation of the user
      */
-    useEffect(() => {
-        async function getOrgEntities() {
-            fetch(baseUrl+'/get_organizational_entity', {
-                headers: { 'Authorization': 'Bearer '+sessionStorage.getItem('token') }
-            })
-            .then(res => res.json())
-            .then(response => {
-                setorgE(response?.organizational_entity?.terms.join('\n'))
-            })
-            .catch(err => {
-                toast.error('Try Again')
-                console.log(err);                
-            })
-        }
+    async function getOrgEntities() {
+        fetch(baseUrl+'/get_organizational_entity', {
+            headers: { 'Authorization': 'Bearer '+sessionStorage.getItem('token') }
+        })
+        .then(res => res.json())
+        .then(response => {
+            setorgE(response?.organizational_entity?.terms.join('\n'))
+        })
+        .catch(err => {
+            toast.error('Try Again')
+            console.log(err);                
+        })
+    }
+    useEffect(() => {       
         getOrgEntities()
     }, [])
 
@@ -102,15 +102,6 @@ function Settings() {
         })
     }
 
-    useEffect(() => {
-        if (orgE) {
-            const timer = setTimeout(() => {
-                addOrgEntity()
-            }, 2000)
-            return () => clearTimeout(timer)
-        }
-    }, [orgE])
-
   return (
     <div className='bg-white h-full min-h-[calc(100vh_-_100px)] w-full px-10 pb-4 flex flex-row items-start justify-between space-x-4'>
       <div className='w-1/2 h-full flex flex-col items-center'>
@@ -130,8 +121,14 @@ function Settings() {
       </div>
       <div className='w-1/2 h-full flex flex-col items-center'>
         <div className='w-full'>
-            <div className='w-full bg-gray-100 text-left rounded-md'>
+            <div className='w-full bg-gray-100 text-left rounded-md flex flex-row items-center justify-between space-x-2'>
                 <p className='w-full text-left text-sm text-black px-2 py-1'>Organisational Information</p>
+                <p onClick={() => {
+                    if (orgE) {
+                        addOrgEntity()
+                        getOrgEntities()
+                    }
+                }} className='text-sm text-right font-medium text-rose-600 hover:underline cursor-pointer px-2'>Save</p>
             </div>
             <div className='w-full border h-[200px] my-2'>
                 <textarea
