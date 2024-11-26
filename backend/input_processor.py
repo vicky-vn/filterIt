@@ -72,78 +72,112 @@ def process_input():
         if not text:
             return jsonify({"error": "No valid text input or files provided."}), 400
 
-        # Step 1: Tokenize Custom Entities First
+        # Step 1: Regex-based Phone Number Detection
+        phone_number_mapping = {}
+        phone_pattern = re.compile(r'\b(\+?\d{1,3}[-.\s]?\(?\d{2,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4})\b')
+        matches = phone_pattern.findall(text)
+        entity_counters = {"PHONE": 0}
+
+        for match in matches:
+            phone_number = match
+            entity_counters["PHONE"] += 1
+            placeholder = f"[PHONE_{entity_counters['PHONE']}]"
+            phone_number_mapping[placeholder] = phone_number
+            text = re.sub(re.escape(phone_number), placeholder, text)
+
+        # Step 2: Tokenize Custom Entities
         custom_entity_mapping = {}
-        entity_counters = {}
-        tokenized_text = text
         processed_terms = set()
 
-        # Replace each custom entity term with a unique placeholder
         for entity in custom_entities:
             label = entity["label"].upper().replace(" ", "_")
-            terms = sorted([term.strip().lower() for term in entity["terms"]], key=len, reverse=True)
+            terms = sorted([term.strip() for term in entity["terms"]], key=len, reverse=True)  # Preserve original case
             entity_counters[label] = entity_counters.get(label, 0)
 
             for term in terms:
-                if term in processed_terms:
-                    continue  # Skip terms that are already processed
+                # Check if term is already processed (case-insensitive) or not present in text
+                if any(re.search(rf'\b{re.escape(term)}\b', placeholder, flags=re.IGNORECASE) for placeholder in
+                       processed_terms) or \
+                        not re.search(rf'\b{re.escape(term)}\b', text, flags=re.IGNORECASE):
+                    continue
+
                 entity_counters[label] += 1
                 placeholder = f"[{label}_{entity_counters[label]}]"
-                custom_entity_mapping[placeholder] = term
-                processed_terms.add(term)
-                tokenized_text = re.sub(rf'\b{re.escape(term)}\b', placeholder, tokenized_text, flags=re.IGNORECASE)
+                custom_entity_mapping[placeholder] = term  # Preserve original case
+                processed_terms.add(term)  # Add original case to track terms precisely
+                # Replace term in text while preserving case-insensitivity
+                text = re.sub(rf'\b{re.escape(term)}\b', placeholder, text, flags=re.IGNORECASE)
 
-        # Step 2: Tokenize Organizational Entities
+        # Step 3: Tokenize Organizational Entities
         org_entity_mapping = {}
         for entity in organizational_entities:
             label = entity["label"].upper().replace(" ", "_")
-            terms = sorted([term.strip().lower() for term in entity["terms"]], key=len, reverse=True)
+            terms = sorted([term.strip() for term in entity["terms"]], key=len, reverse=True)
             entity_counters[label] = entity_counters.get(label, 0)
 
             for term in terms:
-                if term in processed_terms:
-                    continue  # Skip terms already processed
+                if term.lower() in processed_terms or not re.search(rf'\b{re.escape(term)}\b', text,
+                                                                    flags=re.IGNORECASE):
+                    continue
                 entity_counters[label] += 1
                 placeholder = f"[{label}_{entity_counters[label]}]"
-                org_entity_mapping[placeholder] = term
-                processed_terms.add(term)
-                tokenized_text = re.sub(rf'\b{re.escape(term)}\b', placeholder, tokenized_text, flags=re.IGNORECASE)
+                org_entity_mapping[placeholder] = term  # Preserve original case
+                processed_terms.add(term.lower())
+                text = re.sub(rf'\b{re.escape(term)}\b', placeholder, text, flags=re.IGNORECASE)
 
-        # Step 3: Run spaCy on the tokenized text
+        # Step 4: Run SpaCy on the tokenized text
+        tokenized_text = text
         doc = nlp(tokenized_text)
         spacy_entity_mapping = {}
 
-        # Step 4: Refine GPE Labels based on countries, states, and cities lists
+        # Step 5: Refine GPE Labels and Handle Overlapping Entities
         for ent in doc.ents:
-            ent_text = ent.text.strip().lower()
+            ent_text = ent.text.strip()
+            ent_text_lower = ent_text.lower()
             ent_label = ent.label_.upper()
+
+            # Skip entities already processed in custom or organizational entities
+            if ent_text_lower in processed_terms:
+                continue
+
+            # Exclude specific entities like "age" from being part of PERSON
+            if ent_label == "PERSON" and "age" in ent_text_lower.split():
+                continue
 
             # Exclude CARDINAL entities
             if ent_label == "CARDINAL":
                 continue
 
             # Custom rule for AGE detection
-            if ent_label == "DATE" and ("years old" in ent_text or "age" in ent_text):
+            if ent_label == "DATE" and ("years old" in ent_text_lower or "age" in ent_text_lower):
                 ent_label = "AGE"
+
+            # Refine YEAR detection
+            if ent_label == "DATE" and re.match(r"^\d{4}$", ent_text_lower):  # Match 4-digit years
+                ent_label = "YEAR"
 
             # Check if the GPE entity is a country, state, or city
             if ent_label == "GPE":
-                if ent_text in countries:
+                if ent_text_lower in countries:
                     ent_label = "COUNTRY"
-                elif ent_text in states:
+                elif ent_text_lower in states:
                     ent_label = "STATE"
-                elif ent_text in cities:
+                elif ent_text_lower in cities:
                     ent_label = "CITY"
 
-            # Add non-overlapping spaCy entities to the tokenized text
-            if ent_text not in processed_terms:
-                entity_counters[ent_label] = entity_counters.get(ent_label, 0) + 1
-                placeholder = f"[{ent_label}_{entity_counters[ent_label]}]"
-                spacy_entity_mapping[placeholder] = ent.text
-                tokenized_text = re.sub(rf'\b{re.escape(ent.text)}\b', placeholder, tokenized_text)
+            # Add non-overlapping SpaCy entities to the tokenized text
+            entity_counters[ent_label] = entity_counters.get(ent_label, 0) + 1
+            placeholder = f"[{ent_label}_{entity_counters[ent_label]}]"
+            spacy_entity_mapping[placeholder] = ent_text  # Preserve original case
+            tokenized_text = re.sub(rf'\b{re.escape(ent_text)}\b', placeholder, tokenized_text)
 
-        # Combine custom, organizational, and spaCy mappings
-        entity_mapping = {**custom_entity_mapping, **org_entity_mapping, **spacy_entity_mapping}
+        # Combine all mappings
+        entity_mapping = {
+            **phone_number_mapping,
+            **custom_entity_mapping,
+            **org_entity_mapping,
+            **spacy_entity_mapping
+        }
 
         # Save processed data to MongoDB
         upload_entry = {
@@ -153,7 +187,7 @@ def process_input():
             "entity_mapping": entity_mapping,
             "custom_entities": custom_entity_mapping,
             "organizational_entities": org_entity_mapping,
-            "entities": [{"text": ent.text, "label": ent_label} for ent in doc.ents if ent.text.lower() not in processed_terms]
+            "entities": [{"text": ent.text, "label": ent.label_} for ent in doc.ents if ent.text.lower() not in processed_terms]
         }
         result = uploads_collection.insert_one(upload_entry)
 
@@ -221,6 +255,11 @@ def update_parameterized_text(document_id):
         # Append remaining text after the last entity
         tokenized_text_parts.append(original_text[current_position:])
         tokenized_text = ''.join(tokenized_text_parts)
+
+        # Ensure all placeholders not in `selected_entities` are replaced with their real values
+        for placeholder, real_value in entity_mapping.items():
+            if placeholder not in selected_entities:
+                tokenized_text = tokenized_text.replace(placeholder, real_value)
 
         # Update the document in the database with the new tokenized text
         uploads_collection.update_one(

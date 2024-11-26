@@ -28,28 +28,48 @@ def update_custom_entity():
         if not label or not terms:
             return jsonify({"error": "Both label and terms are required"}), 400
 
+        # Normalize terms to lowercase and deduplicate
+        terms = list(set([term.strip().lower() for term in terms]))
+
         if entity_id:
-            # Rename existing label (based on entity_id)
+            # Update the existing custom entity by entity_id
             entity_object_id = ObjectId(entity_id)
             result = custom_entities_collection.update_one(
                 {"email": email, "custom_entities._id": entity_object_id},
-                {"$set": {"custom_entities.$.label": label, "custom_entities.$.terms": terms}}
+                {"$set": {
+                    "custom_entities.$.label": label,
+                    "custom_entities.$.terms": terms
+                }}
             )
             if result.matched_count == 0:
                 return jsonify({"error": "No matching entity found"}), 404
-            message = f"Custom entity '{label}' updated successfully."
+            message = f"Custom entity with ID '{entity_id}' updated successfully."
         else:
-            new_entity = {
-                "_id": ObjectId(),
-                "label": label,
-                "terms": terms
-            }
-            custom_entities_collection.update_one(
-                {"email": email},
-                {"$push": {"custom_entities": new_entity}},
-                upsert=True
+            # Check if a custom entity with the same label already exists
+            existing_entity = custom_entities_collection.find_one(
+                {"email": email, "custom_entities.label": label}
             )
-            message = f"Custom entity '{label}' created successfully."
+
+            if existing_entity:
+                # Merge and deduplicate terms if the label already exists
+                custom_entities_collection.update_one(
+                    {"email": email, "custom_entities.label": label},
+                    {"$set": {"custom_entities.$.terms": terms}}
+                )
+                message = f"Custom entity '{label}' updated successfully."
+            else:
+                # Add a new custom entity if no existing label is found
+                new_entity = {
+                    "_id": ObjectId(),
+                    "label": label,
+                    "terms": terms
+                }
+                custom_entities_collection.update_one(
+                    {"email": email},
+                    {"$push": {"custom_entities": new_entity}},
+                    upsert=True
+                )
+                message = f"Custom entity '{label}' created successfully."
 
         return jsonify({"message": message}), 200
 

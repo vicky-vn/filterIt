@@ -103,7 +103,7 @@ def summarize():
         messages = [
             {"role": "system", "content": f"You're experienced in summarizing health records and reports."},
             {"role": "user",
-             "content": f"Use the following information to summarize and make sure the it is around 1000 words. Have all the medical terms understandable to common folks. Format the content like a health report and give me the summary alone to me : {tokenized_text}"},
+             "content": f"Use the following information to summarize and make sure it is not more than 2000 words. Have all the medical terms understandable to common folks. Format the content like a health report and give me the summary alone, do not add any formating: {tokenized_text}"},
         ]
 
         gpt_response = call_openai(messages)
