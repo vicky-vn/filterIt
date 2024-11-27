@@ -172,16 +172,22 @@ function Process() {
                 <>
                     <p className='w-full max-w-[90%] mx-auto py-1 text-left text-xs px-2 bg-gray-200 rounded-md text-black'>Input</p>
                     {
-                        (uploadComplete || text) ? null : ( 
-                            <div className='w-full flex flex-row items-center space-x-1 ml-12'>            
-                                <input accept='application/pdf,plain/text' multiple={false} ref={fileRef} onChange={e => uploadFile(e)} type='file' className='hidden' />
-                                <button 
+                        (uploadComplete || text) ? null : (
+                            <div className='w-full flex flex-row items-center space-x-1 ml-12'>
+                                {/*<input accept='application/pdf,plain/text' multiple={false} ref={fileRef}*/}
+                                {/*       onChange={e => uploadFile(e)} type='file' className='hidden'/>*/}
+                                <input multiple={false} ref={fileRef}
+                                       onChange={e => uploadFile(e)} type='file' className='hidden'/>
+
+                                <button
                                     onClick={() => fileRef?.current?.click()}
                                     className='border border-black rounded-md px-1 text-sm text-center text-black bg-white hover:border-rose-600 flex flex-row items-center space-x-1'>
                                     Upload File
                                 </button>
                                 <span className='text-gray-600 text-xs px-2 py-1 text-center'>-or-</span>
-                                <p onClick={() => setShowInput(true)} className='hover:underline cursor-pointer px-2 text-sm text-black'>Enter Your Own Text</p>
+                                <p onClick={() => setShowInput(true)}
+                                   className='hover:underline cursor-pointer px-2 text-sm text-black'>Enter Your Own
+                                    Text</p>
                             </div>
                         )
                     }
