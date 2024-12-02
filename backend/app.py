@@ -16,6 +16,8 @@ from response_transformer import get_transformed_answer
 from settings import settings_bp
 from openai_integration import call_openai
 from connected_apps import connected_apps_bp
+from email_service import email_bp
+
 
 
 load_dotenv()
@@ -37,6 +39,7 @@ app.register_blueprint(organizational_entities_bp)
 app.register_blueprint(settings_bp)
 app.register_blueprint(pdf_generator_bp)
 app.register_blueprint(connected_apps_bp)
+app.register_blueprint(email_bp)
 
 
 
