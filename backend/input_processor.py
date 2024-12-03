@@ -10,6 +10,7 @@ from pdf_text_extractor import extract_text_from_pdf
 from docx_text_extractor import extract_text_from_docx
 import spacy
 from bson import ObjectId
+from datetime import datetime
 
 # Load the spaCy model
 nlp = spacy.load('en_core_web_sm')
@@ -188,6 +189,8 @@ def process_input():
             "original_text": text,
             "tokenized_text": tokenized_text,
             "entity_mapping": entity_mapping,
+            "createdAt": datetime.utcnow(),
+            "updatedAt": datetime.utcnow()
         }
         result = uploads_collection.insert_one(upload_entry)
 
@@ -279,7 +282,8 @@ def update_parameterized_text(document_id):
         uploads_collection.update_one(
             {"_id": ObjectId(document_id)},
             {"$set": {
-                "tokenized_text": tokenized_text
+                "tokenized_text": tokenized_text,
+                "updatedAt": datetime.utcnow()
             }}
         )
 
