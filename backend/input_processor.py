@@ -30,19 +30,19 @@ cities = {city["name"].lower() for city in gc.get_cities().values()}
 @input_processor_bp.route('/process_input', methods=['POST'])
 def process_input():
     try:
-        # # Decode JWT token to get email
-        # token = request.headers.get('Authorization', '').replace('Bearer ', '')
-        # if not token:
-        #     return jsonify({"error": "Token is missing!"}), 403
-        #
-        # decoded_token = jwt.decode(token, current_app.config['JWT_SECRET_KEY'], algorithms=["HS256"])
-        # email = decoded_token.get("user_email")  # Extract email
-        # if not email:
-        #     return jsonify({"error": "Email is missing in token!"}), 400
+        # Decode JWT token to get email
+        token = request.headers.get('Authorization', '').replace('Bearer ', '')
+        if not token:
+            return jsonify({"error": "Token is missing!"}), 403
+
+        decoded_token = jwt.decode(token, current_app.config['JWT_SECRET_KEY'], algorithms=["HS256"])
+        email = decoded_token.get("user_email")  # Extract email
+        if not email:
+            return jsonify({"error": "Email is missing in token!"}), 400
 
         # Email Kudu
-        data = request.json
-        email = data.get("email")
+        # data = request.json
+        # email = data.get("email")
 
         if not email:
             return jsonify({"error": "Email is required"}), 400
@@ -223,6 +223,10 @@ def update_parameterized_text(document_id):
         original_text = document.get("original_text")
         entity_mapping = document.get("entity_mapping")
 
+        # Ensure entity_mapping has the updated structure
+        if not isinstance(entity_mapping, dict):
+            return jsonify({"error": "Invalid entity mapping format"}), 400
+
         # Prepare the updated tokenized text based on selected entities
         tokenized_text_parts = []
         current_position = 0
@@ -230,11 +234,18 @@ def update_parameterized_text(document_id):
         # Sort entity placeholders based on their occurrence in the original text
         sorted_entities = sorted(
             entity_mapping.items(),
-            key=lambda item: original_text.find(item[1])
+            key=lambda item: original_text.find(item[1]["value"]) if isinstance(item[1], dict) else -1
         )
 
         # Construct updated text based on user selection
-        for placeholder, original_entity in sorted_entities:
+        for placeholder, entity_data in sorted_entities:
+            if not isinstance(entity_data, dict):
+                continue  # Skip invalid entries
+
+            original_entity = entity_data.get("value")
+            if not original_entity:
+                continue
+
             # Locate entity's position in the original text
             start = original_text.find(original_entity, current_position)
             if start == -1:
@@ -257,8 +268,11 @@ def update_parameterized_text(document_id):
         tokenized_text = ''.join(tokenized_text_parts)
 
         # Ensure all placeholders not in `selected_entities` are replaced with their real values
-        for placeholder, real_value in entity_mapping.items():
-            if placeholder not in selected_entities:
+        for placeholder, entity_data in entity_mapping.items():
+            if not isinstance(entity_data, dict):
+                continue
+            real_value = entity_data.get("value")
+            if placeholder not in selected_entities and real_value:
                 tokenized_text = tokenized_text.replace(placeholder, real_value)
 
         # Update the document in the database with the new tokenized text
