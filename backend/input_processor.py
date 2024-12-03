@@ -40,11 +40,10 @@ def process_input():
         if not email:
             return jsonify({"error": "Email is missing in token!"}), 400
 
-        # Retrieve custom entities for this user
+        # Retrieve custom and organizational entities
         user_settings = custom_entities_collection.find_one({"email": email})
         custom_entities = user_settings.get("custom_entities", []) if user_settings else []
 
-        # Retrieve organizational entities for this user
         org_settings = organizational_entities_collection.find_one({"email": email})
         organizational_entities = org_settings.get("organizational_entities", []) if org_settings else []
 
@@ -68,7 +67,6 @@ def process_input():
         elif 'text' in request.form:
             text = request.form.get('text', '').strip()
 
-        # If no valid input is provided
         if not text:
             return jsonify({"error": "No valid text input or files provided."}), 400
 
@@ -82,7 +80,7 @@ def process_input():
             phone_number = match
             entity_counters["PHONE"] += 1
             placeholder = f"[PHONE_{entity_counters['PHONE']}]"
-            phone_number_mapping[placeholder] = phone_number
+            phone_number_mapping[placeholder] = {"value": phone_number, "entity_type": "Personal Entity"}
             text = re.sub(re.escape(phone_number), placeholder, text)
 
         # Step 2: Tokenize Custom Entities
@@ -95,7 +93,6 @@ def process_input():
             entity_counters[label] = entity_counters.get(label, 0)
 
             for term in terms:
-                # Check if term is already processed (case-insensitive) or not present in text
                 if any(re.search(rf'\b{re.escape(term)}\b', placeholder, flags=re.IGNORECASE) for placeholder in
                        processed_terms) or \
                         not re.search(rf'\b{re.escape(term)}\b', text, flags=re.IGNORECASE):
@@ -103,9 +100,8 @@ def process_input():
 
                 entity_counters[label] += 1
                 placeholder = f"[{label}_{entity_counters[label]}]"
-                custom_entity_mapping[placeholder] = term  # Preserve original case
-                processed_terms.add(term)  # Add original case to track terms precisely
-                # Replace term in text while preserving case-insensitivity
+                custom_entity_mapping[placeholder] = {"value": term, "entity_type": "Custom Entity"}
+                processed_terms.add(term)
                 text = re.sub(rf'\b{re.escape(term)}\b', placeholder, text, flags=re.IGNORECASE)
 
         # Step 3: Tokenize Organizational Entities
@@ -121,7 +117,7 @@ def process_input():
                     continue
                 entity_counters[label] += 1
                 placeholder = f"[{label}_{entity_counters[label]}]"
-                org_entity_mapping[placeholder] = term  # Preserve original case
+                org_entity_mapping[placeholder] = {"value": term, "entity_type": "Organizational Entity"}
                 processed_terms.add(term.lower())
                 text = re.sub(rf'\b{re.escape(term)}\b', placeholder, text, flags=re.IGNORECASE)
 
@@ -168,7 +164,7 @@ def process_input():
             # Add non-overlapping SpaCy entities to the tokenized text
             entity_counters[ent_label] = entity_counters.get(ent_label, 0) + 1
             placeholder = f"[{ent_label}_{entity_counters[ent_label]}]"
-            spacy_entity_mapping[placeholder] = ent_text  # Preserve original case
+            spacy_entity_mapping[placeholder] = {"value": ent_text, "entity_type": "Personal Entity" if ent_label in ["PERSON", "AGE", "PHONE", "CITY", "STATE", "COUNTRY"] else "Miscellaneous Entity"}
             tokenized_text = re.sub(rf'\b{re.escape(ent_text)}\b', placeholder, tokenized_text)
 
         # Combine all mappings
@@ -185,15 +181,12 @@ def process_input():
             "original_text": text,
             "tokenized_text": tokenized_text,
             "entity_mapping": entity_mapping,
-            "custom_entities": custom_entity_mapping,
-            "organizational_entities": org_entity_mapping,
-            "entities": [{"text": ent.text, "label": ent.label_} for ent in doc.ents if ent.text.lower() not in processed_terms]
         }
         result = uploads_collection.insert_one(upload_entry)
 
         return jsonify({
             "message": "Input processed and entities detected successfully.",
-            "entities": entity_mapping,
+            "entity_mapping": entity_mapping,
             "tokenized_text": tokenized_text,
             "document_id": str(result.inserted_id)
         }), 200

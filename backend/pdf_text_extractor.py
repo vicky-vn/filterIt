@@ -13,7 +13,7 @@ def extract_text_from_pdf(file_path):
         print(f"Error extracting text from PDF: {e}")
         return None
 
-@pdf_bp.route("/process_pdf", methods=["POST"])
+@pdf_extractor_bp.route("/process_pdf", methods=["POST"])
 def process_pdf():
     try:
         # Check if a file is included in the request
