@@ -309,8 +309,8 @@ def get_user_uploads():
         if not email:
             return jsonify({"error": "Email is missing in token!"}), 400
 
-        # Retrieve all uploads for the user
-        user_uploads = uploads_collection.find({"email": email})
+        # Retrieve all uploads for the user, sorted by createdAt in descending order
+        user_uploads = uploads_collection.find({"email": email}).sort("updatedAt", -1)
 
         # Convert ObjectId to string for JSON serialization
         uploads = []
