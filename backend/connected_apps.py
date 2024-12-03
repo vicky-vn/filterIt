@@ -1,10 +1,13 @@
 from flask import Blueprint, request, jsonify, current_app
 from db import db
+from flask_cors import CORS
 from bson import ObjectId
 import jwt
 
 connected_apps_bp = Blueprint("connected_apps", __name__)
 connected_apps_collection = db["connected_apps"]
+
+CORS(connected_apps_bp)
 
 @connected_apps_bp.route("/create_app", methods=["POST"])
 def create_app():
