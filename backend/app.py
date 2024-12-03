@@ -15,6 +15,8 @@ from question_transformer import get_transformed_question
 from response_transformer import get_transformed_answer
 from settings import settings_bp
 from openai_integration import call_openai
+from response_transformer import response_bp
+
 
 load_dotenv()
 
@@ -34,6 +36,8 @@ app.register_blueprint(custom_entities_bp)
 app.register_blueprint(organizational_entities_bp)
 app.register_blueprint(settings_bp)
 app.register_blueprint(pdf_generator_bp)
+app.register_blueprint(response_bp)
+
 
 
 # Index route (welcome message)
