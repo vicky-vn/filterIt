@@ -30,15 +30,22 @@ cities = {city["name"].lower() for city in gc.get_cities().values()}
 @input_processor_bp.route('/process_input', methods=['POST'])
 def process_input():
     try:
-        # Decode JWT token to get email
-        token = request.headers.get('Authorization', '').replace('Bearer ', '')
-        if not token:
-            return jsonify({"error": "Token is missing!"}), 403
+        # # Decode JWT token to get email
+        # token = request.headers.get('Authorization', '').replace('Bearer ', '')
+        # if not token:
+        #     return jsonify({"error": "Token is missing!"}), 403
+        #
+        # decoded_token = jwt.decode(token, current_app.config['JWT_SECRET_KEY'], algorithms=["HS256"])
+        # email = decoded_token.get("user_email")  # Extract email
+        # if not email:
+        #     return jsonify({"error": "Email is missing in token!"}), 400
 
-        decoded_token = jwt.decode(token, current_app.config['JWT_SECRET_KEY'], algorithms=["HS256"])
-        email = decoded_token.get("user_email")  # Extract email
+        # Email Kudu
+        data = request.json
+        email = data.get("email")
+
         if not email:
-            return jsonify({"error": "Email is missing in token!"}), 400
+            return jsonify({"error": "Email is required"}), 400
 
         # Retrieve custom and organizational entities
         user_settings = custom_entities_collection.find_one({"email": email})
