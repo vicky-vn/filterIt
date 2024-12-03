@@ -20,9 +20,7 @@ from response_transformer import response_bp
 from pdf_text_extractor import pdf_extractor_bp
 from connected_apps import connected_apps_bp
 
-
 load_dotenv()
-
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
