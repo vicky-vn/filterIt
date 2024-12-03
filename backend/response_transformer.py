@@ -24,15 +24,17 @@ def get_transformed_answer(gpt_response, document_id):
     sorted_mapping = sorted(entity_mapping.items(), key=lambda x: len(x[0]), reverse=True)
 
     transformed_response = gpt_response
-    for token, actual_value in sorted_mapping:
-        transformed_response = re.sub(re.escape(token), actual_value, transformed_response)
+    for token, details in sorted_mapping:
+        if isinstance(details, dict):
+            actual_value = details.get("value")
+            if actual_value:
+                transformed_response = re.sub(re.escape(token), actual_value, transformed_response)
 
     return transformed_response
 
 @response_bp.route("/transform_response", methods=["POST"])
 def transform_response():
     try:
-
         data = request.json
         gpt_response = data.get("gpt_response")
         document_id = data.get("document_id")
