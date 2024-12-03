@@ -18,6 +18,7 @@ from settings import settings_bp
 from openai_integration import call_openai
 from response_transformer import response_bp
 from pdf_text_extractor import pdf_extractor_bp
+from connected_apps import connected_apps_bp
 
 
 load_dotenv()
@@ -40,6 +41,8 @@ app.register_blueprint(settings_bp)
 app.register_blueprint(pdf_generator_bp)
 app.register_blueprint(response_bp)
 app.register_blueprint(pdf_extractor_bp)
+
+app.register_blueprint(connected_apps_bp)
 
 
 

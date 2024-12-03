@@ -7,7 +7,7 @@ import jwt
 connected_apps_bp = Blueprint("connected_apps", __name__)
 connected_apps_collection = db["connected_apps"]
 
-CORS(connected_apps_bp)
+CORS(connected_apps_bp, resources={r"/*": {"origins": "http://localhost:3000"}})
 
 @connected_apps_bp.route("/create_app", methods=["POST"])
 def create_app():
