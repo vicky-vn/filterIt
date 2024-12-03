@@ -2,6 +2,8 @@ import os
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from dotenv import load_dotenv
+
+from backend.pdf_text_extractor import pdf_extractor_bp
 from db import collection
 from bson import ObjectId
 
@@ -17,7 +19,7 @@ from settings import settings_bp
 from openai_integration import call_openai
 from connected_apps import connected_apps_bp
 from email_service import email_bp
-
+from pdf_text_extractor import pdf_bp
 
 
 load_dotenv()
@@ -40,6 +42,7 @@ app.register_blueprint(settings_bp)
 app.register_blueprint(pdf_generator_bp)
 app.register_blueprint(connected_apps_bp)
 app.register_blueprint(email_bp)
+app.register_blueprint(pdf_extractor_bp)
 
 
 

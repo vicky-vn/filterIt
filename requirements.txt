@@ -12,3 +12,4 @@ python-dotenv
 geonamescache
 pycountry
 pyotp
+sib-api-v3-sdk
