@@ -9,7 +9,6 @@ custom_entities_collection = db["custom_entities"]
 @custom_entities_bp.route('/update_custom_entity', methods=['PUT'])
 def update_custom_entity():
     try:
-        # Get the email from the JWT token
         token = request.headers.get('Authorization', '').replace('Bearer ', '')
         if not token:
             return jsonify({"error": "Token is missing!"}), 403
@@ -84,7 +83,6 @@ def update_custom_entity():
 @custom_entities_bp.route('/get_custom_entities', methods=['GET'])
 def get_custom_entities():
     try:
-        # Get the email from the JWT token
         token = request.headers.get('Authorization', '').replace('Bearer ', '')
         if not token:
             return jsonify({"error": "Token is missing!"}), 403

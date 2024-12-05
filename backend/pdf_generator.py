@@ -33,9 +33,8 @@ def generate_pdf_endpoint(document_id):
 
         # Add the tokenized text to the PDF
         pdf.multi_cell(0, 10, tokenized_text)
-        pdf.output(temp_pdf_path)  # Save to file
+        pdf.output(temp_pdf_path)
 
-        # Serve the file to the user
         response = send_file(
             temp_pdf_path,
             as_attachment=True,
@@ -43,7 +42,6 @@ def generate_pdf_endpoint(document_id):
             mimetype='application/pdf'
         )
 
-        # Clean up the temporary file after serving
         os.remove(temp_pdf_path)
 
         return response
@@ -71,7 +69,6 @@ def generate_summary_pdf(document_id):
         pdf.multi_cell(0, 10, demasked_response)
         pdf.output(temp_pdf_path)  # Save to file
 
-        # Serve the file to the user
         response = send_file(
             temp_pdf_path,
             as_attachment=True,
@@ -79,7 +76,6 @@ def generate_summary_pdf(document_id):
             mimetype='application/pdf'
         )
 
-        # Clean up the temporary file after serving
         os.remove(temp_pdf_path)
 
         return response

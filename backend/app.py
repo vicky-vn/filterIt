@@ -39,7 +39,6 @@ app.register_blueprint(settings_bp)
 app.register_blueprint(pdf_generator_bp)
 app.register_blueprint(response_bp)
 app.register_blueprint(pdf_extractor_bp)
-
 app.register_blueprint(connected_apps_bp)
 
 

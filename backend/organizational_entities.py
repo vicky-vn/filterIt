@@ -11,7 +11,6 @@ organizational_entities_collection = db["organizational_entities"]
 @organizational_entities_bp.route('/update_organizational_entity', methods=['PUT'])
 def update_organizational_entity():
     try:
-        # Extract the token from headers
         token = request.headers.get('Authorization', '').replace('Bearer ', '')
         if not token:
             return jsonify({"error": "Token is missing!"}), 403
@@ -22,15 +21,14 @@ def update_organizational_entity():
         if not email:
             return jsonify({"error": "Email is missing in token!"}), 400
 
-        # Get the data from the request
         data = request.json
-        entity_id = data.get('entity_id')  # Optional for targeting a specific entity
-        terms = data.get('terms', [])  # Expecting a list of terms from the frontend
+        entity_id = data.get('entity_id')  # Optional
+        terms = data.get('terms', [])  # list of terms from the frontend
 
         if not isinstance(terms, list):
             return jsonify({"error": "Terms must be a list"}), 400
 
-        # Normalize terms (strip whitespace, split by comma if needed, and remove duplicates)
+        # Normalize terms
         normalized_terms = []
         for term in terms:
             if isinstance(term, str):  # Ensure term is a string

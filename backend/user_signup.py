@@ -6,18 +6,14 @@ import io
 import base64
 
 users_collection = db["users"]
-
-# Set up a blueprint for user signup
 user_signup_bp = Blueprint('user_signup', __name__)
 
 @user_signup_bp.route('/signup', methods=['POST'])
 def signup():
     try:
-        # Get user data from the request
         data = request.json
         email = data.get('email')
 
-        # Validate input fields
         if not email:
             return jsonify({"error": "Email is required."}), 400
 
@@ -28,13 +24,11 @@ def signup():
         # Generate a TOTP secret key for the user
         secret = pyotp.random_base32()
 
-        # Create user document
         user_data = {
             "email": email,
-            "totp_secret": secret  # Store the TOTP secret in the database
+            "totp_secret": secret
         }
 
-        # Insert the user document into the database
         users_collection.insert_one(user_data)
 
         # Generate a QR code for the user to scan in their authenticator app

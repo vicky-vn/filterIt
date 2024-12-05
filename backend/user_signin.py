@@ -6,7 +6,6 @@ from datetime import datetime, timedelta
 
 users_collection = db["users"]
 
-# Set up a blueprint for user signin
 user_signin_bp = Blueprint('user_signin', __name__)
 
 @user_signin_bp.route('/signin', methods=['POST'])
@@ -35,7 +34,7 @@ def signin():
             return jsonify({"error": "Invalid email or token."}), 401
 
         # Generate JWT with expiration time
-        jwt_exp = datetime.utcnow() + timedelta(hours=10)
+        jwt_exp = datetime.utcnow() + timedelta(hours=24)
         jwt_token = jwt.encode({
             "user_email": email,
             "exp": jwt_exp

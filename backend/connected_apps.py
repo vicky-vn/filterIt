@@ -1,18 +1,14 @@
 from flask import Blueprint, request, jsonify, current_app
 from db import db
-from flask_cors import CORS
 from bson import ObjectId
 import jwt
 
 connected_apps_bp = Blueprint("connected_apps", __name__)
 connected_apps_collection = db["connected_apps"]
 
-CORS(connected_apps_bp, resources={r"/*": {"origins": "http://localhost:3000"}})
-
 @connected_apps_bp.route("/create_app", methods=["POST"])
 def create_app():
     try:
-        # Decode JWT token to get email
         token = request.headers.get("Authorization", "").replace("Bearer ", "")
         if not token:
             return jsonify({"error": "Token is missing!"}), 403
@@ -22,7 +18,6 @@ def create_app():
         if not email:
             return jsonify({"error": "Email is missing in token!"}), 400
 
-        # Get app details from the request payload
         data = request.json
         name = data.get("name")
         description = data.get("description")
@@ -54,7 +49,6 @@ def create_app():
 @connected_apps_bp.route("/delete_app/<app_id>", methods=["DELETE"])
 def delete_app(app_id):
     try:
-        # Decode JWT token to get email
         token = request.headers.get("Authorization", "").replace("Bearer ", "")
         if not token:
             return jsonify({"error": "Token is missing!"}), 403
@@ -82,7 +76,6 @@ def delete_app(app_id):
 @connected_apps_bp.route("/get_apps", methods=["GET"])
 def get_apps():
     try:
-        # Decode JWT token to get email
         token = request.headers.get("Authorization", "").replace("Bearer ", "")
         if not token:
             return jsonify({"error": "Token is missing!"}), 403

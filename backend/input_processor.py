@@ -14,11 +14,8 @@ from datetime import datetime
 
 # Load the spaCy model
 nlp = spacy.load('en_core_web_sm')
-
-# Set up a blueprint for processing input
 input_processor_bp = Blueprint('input_processor', __name__)
 
-# Define MongoDB collection for uploads
 uploads_collection = db["uploads"]
 
 # Initialize geonamescache and lists for countries, states, and cities
@@ -40,10 +37,6 @@ def process_input():
         email = decoded_token.get("user_email")  # Extract email
         if not email:
             return jsonify({"error": "Email is missing in token!"}), 400
-
-        # Email Kudu
-        # data = request.json
-        # email = data.get("email")
 
         if not email:
             return jsonify({"error": "Email is required"}), 400
@@ -172,7 +165,13 @@ def process_input():
             # Add non-overlapping SpaCy entities to the tokenized text
             entity_counters[ent_label] = entity_counters.get(ent_label, 0) + 1
             placeholder = f"[{ent_label}_{entity_counters[ent_label]}]"
-            spacy_entity_mapping[placeholder] = {"value": ent_text, "entity_type": "Personal Entity" if ent_label in ["PERSON", "AGE", "PHONE", "CITY", "STATE", "COUNTRY"] else "Miscellaneous Entity"}
+            spacy_entity_mapping[placeholder] = {
+                "value": ent_text,
+                "entity_type": "Geo Entity" if ent_label in ["COUNTRY", "CITY", "STATE"] else
+                "Personal Entity" if ent_label in ["PERSON", "AGE", "PHONE"] else
+                "Miscellaneous Entity"
+            }
+
             tokenized_text = re.sub(rf'\b{re.escape(ent_text)}\b', placeholder, tokenized_text)
 
         # Combine all mappings
